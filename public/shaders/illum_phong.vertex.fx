@@ -28,5 +28,5 @@ void main() {
     model_uv = uv;
 
     // Transform and project vertex from 3D world-space to 2D screen-space
-    gl_Position = projection * view * world * vec4(position, 1.0);;
+    gl_Position = projection * view * world * vec4(position, 1.0);
 }
