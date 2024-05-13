@@ -32,8 +32,12 @@ void main() {
     vec3 diffuse_color = light_colors[0] * model_color * max(0.0, dot(model_normal, light_dir));
     // Specular
     vec3 view_dir = normalize(camera_position - model_position);
-    vec3 reflected_light = reflect(-light_dir, model_normal);
-    vec3 specular_color = light_colors[0] * mat_specular * pow(max(dot(reflected_light, view_dir), 0.0), mat_shininess);
+    vec3 specular_color = vec3(0.0, 0.0, 0.0);
+    // Filter out back-face specular
+    if (dot(view_dir, model_normal) >= 0.0) {
+        vec3 reflected_light = reflect(-light_dir, model_normal);
+        specular_color = light_colors[0] * mat_specular * pow(max(dot(reflected_light, view_dir), 0.0), mat_shininess);
+    }
     // Combined
     FragColor = vec4(ambient_color + diffuse_color + specular_color, 1.0);
 }
