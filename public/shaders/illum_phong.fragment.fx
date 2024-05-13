@@ -35,7 +35,7 @@ void main() {
     vec3 specular_color = vec3(0.0, 0.0, 0.0);
     // Filter out back-face specular
     if (dot(view_dir, model_normal) >= 0.0) {
-        vec3 reflected_light = reflect(-light_dir, model_normal);
+        vec3 reflected_light = normalize(reflect(-light_dir, model_normal));
         specular_color = light_colors[0] * mat_specular * pow(max(dot(reflected_light, view_dir), 0.0), mat_shininess);
     }
     // Combined
