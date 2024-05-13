@@ -53,6 +53,12 @@ class Renderer {
         current_scene.camera = new UniversalCamera('camera', new Vector3(0.0, 1.8, 10.0), scene);
         current_scene.camera.setTarget(new Vector3(0.0, 1.8, 0.0));
         current_scene.camera.upVector = new Vector3(0.0, 1.0, 0.0);
+        current_scene.camera.keysLeft = [65];
+        current_scene.camera.keysRight = [68];
+        current_scene.camera.keysUp = [87];
+        current_scene.camera.keysDown = [83];
+        current_scene.camera.keysUpward = [32];
+        current_scene.camera.keysDownward = [16];
         current_scene.camera.attachControl(this.canvas, true);
         current_scene.camera.fov = 35.0 * (Math.PI / 180);
         current_scene.camera.minZ = 0.1;
