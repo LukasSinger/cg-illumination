@@ -32,10 +32,14 @@ out vec3 specular_illum;
 void main() {
     // Get initial position of vertex (prior to height displacement)
     vec4 world_pos = world * vec4(position, 1.0);
+    vec3 normal = vec3(0.0, 1.0, 0.0); // no height displacement (temp)
 
-    // Pass diffuse and specular illumination onto the fragment shader
-    diffuse_illum = vec3(0.0, 0.0, 0.0);
-    specular_illum = vec3(0.0, 0.0, 0.0);
+    // Calculate illumination with vertex normal
+    vec3 light_dir = normalize(light_positions[0] - position);
+    diffuse_illum = light_colors[0] * max(0.0, dot(normal, light_dir));
+    vec3 view_dir = normalize(camera_position - position);
+    vec3 reflected_light = reflect(-light_dir, normal);
+    specular_illum = light_colors[0] * pow(max(dot(reflected_light, view_dir), 0.0), mat_shininess);
 
     // Pass vertex texcoord onto the fragment shader
     model_uv = uv;
