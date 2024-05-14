@@ -38,6 +38,17 @@ class Renderer {
                 ambient: new Color3(0.1, 0.1, 0.1),
                 lights: [],
                 models: []
+            },
+            {
+                scene: new Scene(this.engine),
+                background_color: new Color4(0.0, 0.0, 0.0, 1.0),
+                materials: null,
+                ground_subdivisions: null,
+                ground_mesh: null,
+                camera: null,
+                ambient: new Color3(0.1, 0.1, 0.1),
+                lights: [],
+                models: []
             }
         ];
         this.active_scene = 0;
@@ -149,6 +160,44 @@ class Renderer {
             light0.diffuse = new Color3(1.0, 1.0, 1.0);
             light0.specular = new Color3(1.0, 1.0, 1.0);
             current_scene.lights.push(light0);
+            
+            // Create other models
+            let sphere = CreateSphere('sphere', { segments: 32 }, scene);
+            sphere.position = new Vector3(0.0, 0.0, -1.0);
+            sphere.rotation = new Vector3(0.0, 0.0, -30 / 180 * Math.PI);
+            sphere.metadata = {
+                mat_color: new Color3(1.0, 1.0, 1.0),
+                mat_texture: new Texture("public/textures/saturnmap.jpg"),
+                mat_specular: new Color3(0.2, 0.2, 0.2),
+                mat_shininess: 1,
+                texture_scale: new Vector2(1.0, 1.0)
+            }
+            sphere.material = materials['illum_' + this.shading_alg];
+            current_scene.models.push(sphere);
+
+            let ring = Renderer.CreateRing({ segments: 32, radius: 1, width: 0.01, thickness: 0.25 }, scene);
+            ring.position = new Vector3(0.0, 0.0, -1.0);
+            ring.rotation = new Vector3(0.0, 0.0, -120 / 180 * Math.PI);
+            ring.metadata = {
+                mat_color: new Color3(1.0, 1.0, 1.0),
+                mat_texture: new Texture("public/textures/saturnringcolor.jpg"),
+                mat_specular: new Color3(0.6, 0.6, 0.6),
+                mat_shininess: 8,
+                texture_scale: new Vector2(4.0, 4.0)
+            }
+            ring.material = materials['illum_' + this.shading_alg];
+            current_scene.models.push(ring);
+        } else if (scene_idx == 2) {
+            // Create point light sources
+            let light0 = new PointLight('light0', new Vector3(1.0, 3.0, 5.0), scene);
+            light0.diffuse = new Color3(0.5, 0.0, 1.0);
+            light0.specular = new Color3(1.0, 1.0, 1.0);
+            current_scene.lights.push(light0);
+
+            let light1 = new PointLight('light1', new Vector3(1.0, 3.0, -5.0), scene);
+            light1.diffuse = new Color3(0.0, 0.3, 1.0);
+            light1.specular = new Color3(1.0, 1.0, 1.0);
+            current_scene.lights.push(light1);
             
             // Create other models
             let sphere = CreateSphere('sphere', { segments: 32 }, scene);
