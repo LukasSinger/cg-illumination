@@ -3,6 +3,8 @@ import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
 import { PointLight } from '@babylonjs/core/Lights/pointLight';
 import { CreateSphere } from '@babylonjs/core/Meshes/Builders/sphereBuilder';
 import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder';
+import { Mesh } from '@babylonjs/core/Meshes/mesh'
+import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData'
 import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import { RawTexture } from '@babylonjs/core/Materials/Textures/rawTexture';
 import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
@@ -115,6 +117,17 @@ class Renderer {
         box.material = materials['illum_' + this.shading_alg];
         current_scene.models.push(box);
 
+        let ring = Renderer.CreateRing({segments: 32, radius: 0.5, width: 0.25, thickness: 0.25}, scene);
+        ring.position = new Vector3(0.0, 0.5, -1.0);
+        ring.metadata = {
+            mat_color: new Color3(0.95, 0.75, 0.05),
+            mat_texture: white_texture,
+            mat_specular: new Color3(0.6, 0.6, 0.6),
+            mat_shininess: 8,
+            texture_scale: new Vector2(1.0, 1.0)
+        }
+        ring.material = materials['illum_' + this.shading_alg];
+        current_scene.models.push(ring);
 
         // Animation function - called before each frame gets rendered
         scene.onBeforeRenderObservable.add(() => {
@@ -125,6 +138,51 @@ class Renderer {
             this.updateShaderUniforms(scene_idx, materials['illum_' + this.shading_alg]);
             this.updateShaderUniforms(scene_idx, materials['ground_' + this.shading_alg]);
         });
+    }
+
+    static CreateRing(params, scene) {
+        const ring = new Mesh("custom", scene);
+        const ringData = new VertexData();
+        ringData.positions = [];
+        ringData.indices = [];
+
+        // Curved faces
+        for (let i = 0; i < 2; i++) {
+            for (let s = 0; s < params.segments; s++) {
+                for (let v = 0; v < 4; v++) {
+                    ringData.positions.push(-params.width / 2 + params.width * Math.floor(v / 2));
+                    const ringSize = params.radius - i * params.thickness;
+                    ringData.positions.push(ringSize * Math.cos(2 * Math.PI * (s + v % 2) / params.segments));
+                    ringData.positions.push(ringSize * Math.sin(2 * Math.PI * (s + v % 2) / params.segments));
+                }
+                const outOffset = params.segments * 4;
+                const iBase = outOffset * i + 4 * s;
+                if (i == 1) {
+                    ringData.indices.push(iBase, iBase + 1, iBase + 2, iBase + 3, iBase + 2, iBase + 1);                    
+                } else {
+                    ringData.indices.push(iBase + 2, iBase + 1, iBase, iBase + 1, iBase + 2, iBase + 3);
+                }
+            }
+        }
+        // Sides
+        for (let s = 0; s < params.segments; s++) {
+            const outOffset = params.segments * 4;
+            const iBase = outOffset + 4 * s;
+            const sideIndices = [[iBase, iBase - outOffset, iBase + 1, iBase - outOffset + 1, iBase + 1, iBase - outOffset], [iBase + 2, iBase - outOffset + 2, iBase + 3, iBase - outOffset + 3, iBase + 3, iBase - outOffset + 2]];
+            for (let i = 0; i < 2; i++) {
+                for (let v = 0; v < 6; v++) {
+                    ringData.positions.push(ringData.positions[0 + 3 * sideIndices[i][v]]);
+                    ringData.positions.push(ringData.positions[1 + 3 * sideIndices[i][v]]);
+                    ringData.positions.push(ringData.positions[2 + 3 * sideIndices[i][v]]);
+                }
+                ringData.indices.push(...sideIndices[i]);
+            }
+        }
+
+        ringData.normals = [];
+        VertexData.ComputeNormals(ringData.positions, ringData.indices, ringData.normals);
+        ringData.applyToMesh(ring, true);
+        return ring;
     }
 
     updateShaderUniforms(scene_idx, shader) {
