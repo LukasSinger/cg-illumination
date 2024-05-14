@@ -35,15 +35,18 @@ void main() {
     vec3 normal = vec3(0.0, 1.0, 0.0); // no height displacement (temp)
 
     // Calculate illumination with vertex normal
-    vec3 light_dir = normalize(light_positions[0] - position);
-    float diffuse_factor = max(0.0, dot(normal, light_dir));
-    diffuse_illum = light_colors[0] * diffuse_factor;
-    vec3 view_dir = normalize(camera_position - position);
+    diffuse_illum = vec3(0.0, 0.0, 0.0);
     specular_illum = vec3(0.0, 0.0, 0.0);
-    // Filter out back-face specular
-    if (diffuse_factor > 0.0) {
-        vec3 reflected_light = reflect(-light_dir, normal);
-        specular_illum = light_colors[0] * pow(max(dot(reflected_light, view_dir), 0.0), mat_shininess);
+    for (int l = 0; l < num_lights; l++) {
+        vec3 light_dir = normalize(light_positions[l] - position);
+        float diffuse_factor = max(0.0, dot(normal, light_dir));
+        diffuse_illum += light_colors[l] * diffuse_factor;
+        vec3 view_dir = normalize(camera_position - position);
+        // Filter out back-face specular
+        if (diffuse_factor > 0.0) {
+            vec3 reflected_light = reflect(-light_dir, normal);
+            specular_illum += light_colors[l] * pow(max(dot(reflected_light, view_dir), 0.0), mat_shininess);
+        }
     }
 
     // Pass vertex texcoord onto the fragment shader
