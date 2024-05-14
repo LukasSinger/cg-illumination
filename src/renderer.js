@@ -61,6 +61,7 @@ class Renderer {
         current_scene.camera.keysDown = [83];
         current_scene.camera.keysUpward = [32];
         current_scene.camera.keysDownward = [16];
+        current_scene.camera.speed = 0.5;
         current_scene.camera.attachControl(this.canvas, true);
         current_scene.camera.fov = 35.0 * (Math.PI / 180);
         current_scene.camera.minZ = 0.1;
