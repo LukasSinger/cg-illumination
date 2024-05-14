@@ -27,6 +27,17 @@ class Renderer {
                 ambient: new Color3(0.2, 0.2, 0.2),
                 lights: [],
                 models: []
+            },
+            {
+                scene: new Scene(this.engine),
+                background_color: new Color4(0.0, 0.0, 0.0, 1.0),
+                materials: null,
+                ground_subdivisions: null,
+                ground_mesh: null,
+                camera: null,
+                ambient: new Color3(0.1, 0.1, 0.1),
+                lights: [],
+                models: []
             }
         ];
         this.active_scene = 0;
@@ -35,12 +46,14 @@ class Renderer {
 
         this.scenes.forEach((scene, idx) => {
             scene.materials = material_callback(scene.scene);
-            scene.ground_mesh = ground_mesh_callback(scene.scene, scene.ground_subdivisions);
-            this['createScene'+ idx](idx);
+            if (scene.ground_subdivisions) {
+                scene.ground_mesh = ground_mesh_callback(scene.scene, scene.ground_subdivisions);
+            }
+            this.createScene(idx);
         });
     }
 
-    createScene0(scene_idx) {
+    createScene(scene_idx) {
         let current_scene = this.scenes[scene_idx];
         let scene = current_scene.scene;
         let materials = current_scene.materials;
@@ -67,68 +80,103 @@ class Renderer {
         current_scene.camera.minZ = 0.1;
         current_scene.camera.maxZ = 100.0;
 
-        // Create point light sources
-        let light0 = new PointLight('light0', new Vector3(1.0, 1.0, 5.0), scene);
-        light0.diffuse = new Color3(1.0, 1.0, 1.0);
-        light0.specular = new Color3(1.0, 1.0, 1.0);
-        current_scene.lights.push(light0);
+        if (scene_idx == 0) {
+            // Create point light sources
+            let light0 = new PointLight('light0', new Vector3(1.0, 1.0, 5.0), scene);
+            light0.diffuse = new Color3(1.0, 1.0, 1.0);
+            light0.specular = new Color3(1.0, 1.0, 1.0);
+            current_scene.lights.push(light0);
 
-        let light1 = new PointLight('light1', new Vector3(0.0, 3.0, 0.0), scene);
-        light1.diffuse = new Color3(1.0, 1.0, 1.0);
-        light1.specular = new Color3(1.0, 1.0, 1.0);
-        current_scene.lights.push(light1);
+            let light1 = new PointLight('light1', new Vector3(0.0, 3.0, 0.0), scene);
+            light1.diffuse = new Color3(1.0, 1.0, 1.0);
+            light1.specular = new Color3(1.0, 1.0, 1.0);
+            current_scene.lights.push(light1);
 
-        // Create ground mesh
-        let white_texture = RawTexture.CreateRGBTexture(new Uint8Array([255, 255, 255]), 1, 1, scene);
-        let ground_heightmap = new Texture(BASE_URL + 'heightmaps/default.png', scene);
-        ground_mesh.scaling = new Vector3(20.0, 1.0, 20.0);
-        ground_mesh.metadata = {
-            mat_color: new Color3(0.10, 0.65, 0.15),
-            mat_texture: white_texture,
-            mat_specular: new Color3(0.0, 0.0, 0.0),
-            mat_shininess: 1,
-            texture_scale: new Vector2(1.0, 1.0),
-            height_scalar: 1.0,
-            heightmap: ground_heightmap
-        }
-        ground_mesh.material = materials['ground_' + this.shading_alg];
-        
-        // Create other models
-        let sphere = CreateSphere('sphere', {segments: 32}, scene);
-        sphere.position = new Vector3(1.0, 0.5, 3.0);
-        sphere.metadata = {
-            mat_color: new Color3(0.10, 0.35, 0.88),
-            mat_texture: white_texture,
-            mat_specular: new Color3(0.8, 0.8, 0.8),
-            mat_shininess: 16,
-            texture_scale: new Vector2(1.0, 1.0)
-        }
-        sphere.material = materials['illum_' + this.shading_alg];
-        current_scene.models.push(sphere);
+            // Create ground mesh
+            let white_texture = RawTexture.CreateRGBTexture(new Uint8Array([255, 255, 255]), 1, 1, scene);
+            let ground_heightmap = new Texture(BASE_URL + 'heightmaps/default.png', scene);
+            ground_mesh.scaling = new Vector3(20.0, 1.0, 20.0);
+            ground_mesh.metadata = {
+                mat_color: new Color3(0.10, 0.65, 0.15),
+                mat_texture: white_texture,
+                mat_specular: new Color3(0.0, 0.0, 0.0),
+                mat_shininess: 1,
+                texture_scale: new Vector2(1.0, 1.0),
+                height_scalar: 1.0,
+                heightmap: ground_heightmap
+            }
+            ground_mesh.material = materials['ground_' + this.shading_alg];
+            
+            // Create other models
+            let sphere = CreateSphere('sphere', { segments: 32 }, scene);
+            sphere.position = new Vector3(1.0, 0.5, 3.0);
+            sphere.metadata = {
+                mat_color: new Color3(0.10, 0.35, 0.88),
+                mat_texture: white_texture,
+                mat_specular: new Color3(0.8, 0.8, 0.8),
+                mat_shininess: 16,
+                texture_scale: new Vector2(1.0, 1.0)
+            }
+            sphere.material = materials['illum_' + this.shading_alg];
+            current_scene.models.push(sphere);
 
-        let box = CreateBox('box', {width: 2, height: 1, depth: 1}, scene);
-        box.position = new Vector3(-1.0, 0.5, 2.0);
-        box.metadata = {
-            mat_color: new Color3(0.75, 0.15, 0.05),
-            mat_texture: white_texture,
-            mat_specular: new Color3(0.4, 0.4, 0.4),
-            mat_shininess: 4,
-            texture_scale: new Vector2(1.0, 1.0)
-        }
-        box.material = materials['illum_' + this.shading_alg];
-        current_scene.models.push(box);
+            let box = CreateBox('box', { width: 2, height: 1, depth: 1 }, scene);
+            box.position = new Vector3(-1.0, 0.5, 2.0);
+            box.metadata = {
+                mat_color: new Color3(0.75, 0.15, 0.05),
+                mat_texture: white_texture,
+                mat_specular: new Color3(0.4, 0.4, 0.4),
+                mat_shininess: 4,
+                texture_scale: new Vector2(1.0, 1.0)
+            }
+            box.material = materials['illum_' + this.shading_alg];
+            current_scene.models.push(box);
 
-        let ring = Renderer.CreateRing({segments: 32, radius: 0.5, width: 0.25, thickness: 0.25}, scene);
-        ring.position = new Vector3(0.0, 0.5, -1.0);
-        ring.metadata = {
-            mat_color: new Color3(0.95, 0.75, 0.05),
-            mat_texture: white_texture,
-            mat_specular: new Color3(0.6, 0.6, 0.6),
-            mat_shininess: 8,
-            texture_scale: new Vector2(1.0, 1.0)
+            let ring = Renderer.CreateRing({ segments: 32, radius: 0.5, width: 0.25, thickness: 0.25 }, scene);
+            ring.position = new Vector3(0.0, 0.5, -1.0);
+            ring.metadata = {
+                mat_color: new Color3(0.95, 0.75, 0.05),
+                mat_texture: white_texture,
+                mat_specular: new Color3(0.6, 0.6, 0.6),
+                mat_shininess: 8,
+                texture_scale: new Vector2(1.0, 1.0)
+            }
+            ring.material = materials['illum_' + this.shading_alg];
+            current_scene.models.push(ring);
+        } else if (scene_idx == 1) {
+            // Create point light sources
+            let light0 = new PointLight('light0', new Vector3(1.0, 3.0, 5.0), scene);
+            light0.diffuse = new Color3(1.0, 1.0, 1.0);
+            light0.specular = new Color3(1.0, 1.0, 1.0);
+            current_scene.lights.push(light0);
+            
+            // Create other models
+            let sphere = CreateSphere('sphere', { segments: 32 }, scene);
+            sphere.position = new Vector3(0.0, 0.0, -1.0);
+            sphere.rotation = new Vector3(0.0, 0.0, -30 / 180 * Math.PI);
+            sphere.metadata = {
+                mat_color: new Color3(1.0, 1.0, 1.0),
+                mat_texture: new Texture("public/textures/saturnmap.jpg"),
+                mat_specular: new Color3(0.2, 0.2, 0.2),
+                mat_shininess: 1,
+                texture_scale: new Vector2(1.0, 1.0)
+            }
+            sphere.material = materials['illum_' + this.shading_alg];
+            current_scene.models.push(sphere);
+
+            let ring = Renderer.CreateRing({ segments: 32, radius: 1, width: 0.01, thickness: 0.25 }, scene);
+            ring.position = new Vector3(0.0, 0.0, -1.0);
+            ring.rotation = new Vector3(0.0, 0.0, -120 / 180 * Math.PI);
+            ring.metadata = {
+                mat_color: new Color3(1.0, 1.0, 1.0),
+                mat_texture: new Texture("public/textures/saturnringcolor.jpg"),
+                mat_specular: new Color3(0.6, 0.6, 0.6),
+                mat_shininess: 8,
+                texture_scale: new Vector2(4.0, 4.0)
+            }
+            ring.material = materials['illum_' + this.shading_alg];
+            current_scene.models.push(ring);
         }
-        ring.material = materials['illum_' + this.shading_alg];
-        current_scene.models.push(ring);
 
         // Animation function - called before each frame gets rendered
         scene.onBeforeRenderObservable.add(() => {
@@ -216,7 +264,9 @@ class Renderer {
             let materials = scene.materials;
             let ground_mesh = scene.ground_mesh;
 
-            ground_mesh.material = materials['ground_' + this.shading_alg];
+            if (scene.ground_subdivisions) {
+                ground_mesh.material = materials['ground_' + this.shading_alg];
+            }
             scene.models.forEach((model) => {
                 model.material = materials['illum_' + this.shading_alg];
             });
